@@ -75,18 +75,18 @@ public class SpeedwagonService {
                 session.merge(u);
                 tx.commit(); // SQL confirmado
 
-                // Log SOLO si el commit fue exitoso
+                // Log solo si el commit fue exitoso
                 registrarLog("EDICION", "Actualizado ID " + id + ": " + nombre);
-                System.out.println("✅ Usuario " + id + " actualizado y log registrado.");
+                System.out.println(" Usuario " + id + " actualizado y log registrado.");
             } else {
                 tx.rollback();
-                System.err.println("❌ No se encontró usuario con ID: " + id);
+                System.err.println(" No se encontró usuario con ID: " + id);
             }
         } catch (Exception e) {
             if (tx != null) tx.rollback();
             // Log de error, no de éxito
             registrarLog("ERROR", "Fallo al actualizar ID " + id + ": " + e.getMessage());
-            System.err.println("❌ ERROR AL ACTUALIZAR: " + e.getMessage());
+            System.err.println(" ERROR AL ACTUALIZAR: " + e.getMessage());
             e.printStackTrace();
             throw new RuntimeException("Error al actualizar usuario", e); // Re-lanzamos para el endpoint
         }
@@ -96,10 +96,10 @@ public class SpeedwagonService {
         try {
             repoSQL.eliminar(id); // Si falla, lanza RuntimeException
             registrarLog("ELIMINACION", "Eliminado ID de usuario: " + id);
-            System.out.println("✅ Usuario " + id + " eliminado y log registrado.");
+            System.out.println(" Usuario " + id + " eliminado y log registrado.");
         } catch (Exception e) {
             registrarLog("ERROR", "Fallo al eliminar ID " + id + ": " + e.getMessage());
-            System.err.println("❌ ERROR AL ELIMINAR: " + e.getMessage());
+            System.err.println(" ERROR AL ELIMINAR: " + e.getMessage());
             throw e;
         }
     }
@@ -141,7 +141,7 @@ public class SpeedwagonService {
                     .append("fecha", new Date());
             col.insertOne(log);
         } catch (Exception e) {
-            System.err.println("❌ Error en Log Mongo: " + e.getMessage());
+            System.err.println(" Error en Log Mongo: " + e.getMessage());
         }
     }
 }
