@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Fundación Speedwagon - Panel de Control</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; background-color: #f4f4f4; }
+        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; }
+        button { padding: 10px; cursor: pointer; background: #3498db; color: white; border: none; border-radius: 4px; }
+        button:hover { background: #2980b9; }
+        .btn-delete { background: #e74c3c; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🔍 Panel de la Fundación Speedwagon</h1>
+
+    <button onclick="cargarPersonajes()">🔄 Actualizar Lista</button>
+    <button onclick="exportarDatos()" style="background:#27ae60">💾 Generar Backup</button>
+    <a href="http://localhost:7070/logs" target="_blank"><button style="background:#8e44ad">📜 Ver Logs (Mongo)</button></a>
+
+    <table id="tabla-personajes">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Linaje</th>
+            <th>Stand</th>
+            <th>Acciones</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+
+<script>
+    const API_URL = "http://localhost:7070/personajes";
+
+    async function cargarPersonajes() {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+        const tbody = document.querySelector("#tabla-personajes tbody");
+        tbody.innerHTML = "";
+
+        data.forEach(p => {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${p.id}</td>
+                    <td>${p.nombre}</td>
+                    <td>${p.linaje}</td>
+                    <td>${p.stand ? p.stand.nombreStand : 'Sin Stand'}</td>
+                    <td>
+                        <button class="btn-delete" onclick="borrar(${p.id})">Eliminar</button>
+                    </td>
+                </tr>
+            `;
+        });
+    }
+
+    async function borrar(id) {
+        if(confirm("¿Seguro que quieres borrar al usuario " + id + "?")) {
+            await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            alert("Borrado en SQL y log registrado en Mongo");
+            cargarPersonajes();
+        }
+    }
+
+    async function exportarDatos() {
+        await fetch("http://localhost:7070/exportar");
+        alert("Backup Jackson creado con éxito");
+    }
+
+    window.onload = cargarPersonajes;
+</script>
+</body>
+</html>

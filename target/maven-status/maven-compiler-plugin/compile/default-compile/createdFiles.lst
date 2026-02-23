@@ -1,0 +1,8 @@
+repository\JojoRepository.class
+domain\Stand.class
+domain\Usuario.class
+domain\Habilidad.class
+repository\HibernateUtil.class
+service\SpeedwagonService.class
+mongo\EventoLog.class
+ui\RestApi.class

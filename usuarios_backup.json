@@ -1,0 +1,99 @@
+[ {
+  "id" : 10,
+  "nombre" : "aaa",
+  "linaje" : "ddd",
+  "stand" : {
+    "id" : 5,
+    "nombreStand" : "aaa",
+    "rango" : "B",
+    "habilidades" : [ {
+      "id" : 4,
+      "nombreTecnica" : "aaa",
+      "daño" : 21
+    } ]
+  }
+}, {
+  "id" : 11,
+  "nombre" : "dwdw",
+  "linaje" : "dwdwd",
+  "stand" : {
+    "id" : 6,
+    "nombreStand" : "wdwdwd",
+    "rango" : "dwdwd",
+    "habilidades" : [ {
+      "id" : 5,
+      "nombreTecnica" : "dwdwdw",
+      "daño" : -2
+    } ]
+  }
+}, {
+  "id" : 12,
+  "nombre" : "dwdw",
+  "linaje" : "dwdwd",
+  "stand" : {
+    "id" : 7,
+    "nombreStand" : "wdwdwd",
+    "rango" : "dwdwd",
+    "habilidades" : [ {
+      "id" : 6,
+      "nombreTecnica" : "dwdwdw",
+      "daño" : -2
+    } ]
+  }
+}, {
+  "id" : 15,
+  "nombre" : "Dio Brando",
+  "linaje" : "Joestar",
+  "stand" : {
+    "id" : 10,
+    "nombreStand" : "Za Warudo",
+    "rango" : "B",
+    "habilidades" : [ {
+      "id" : 9,
+      "nombreTecnica" : "Detener el tiempo",
+      "daño" : 110
+    } ]
+  }
+}, {
+  "id" : 16,
+  "nombre" : "ww",
+  "linaje" : "ww",
+  "stand" : {
+    "id" : 11,
+    "nombreStand" : "ww",
+    "rango" : "ww",
+    "habilidades" : [ {
+      "id" : 10,
+      "nombreTecnica" : "ww",
+      "daño" : 12
+    } ]
+  }
+}, {
+  "id" : 17,
+  "nombre" : "test",
+  "linaje" : "Joestar",
+  "stand" : {
+    "id" : 12,
+    "nombreStand" : "Joestar",
+    "rango" : "B",
+    "habilidades" : [ {
+      "id" : 11,
+      "nombreTecnica" : "22",
+      "daño" : 22
+    } ]
+  }
+}, {
+  "id" : 18,
+  "nombre" : "ejemplo",
+  "linaje" : "joestar",
+  "stand" : {
+    "id" : 13,
+    "nombreStand" : "start",
+    "rango" : "C",
+    "habilidades" : [ {
+      "id" : 12,
+      "nombreTecnica" : "parar",
+      "daño" : 22
+    } ]
+  }
+} ]
