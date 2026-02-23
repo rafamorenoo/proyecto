@@ -22,7 +22,6 @@ public class RestApi {
             ctx.result(getHtmlContent());
         });
 
-        // Endpoints de datos
         app.get("/personajes", ctx -> ctx.json(repo.listarTodos()));
         app.get("/personajes/buscar", ctx -> ctx.json(repo.buscarPorLinaje(ctx.queryParam("linaje"))));
         app.get("/personajes/poderosos", ctx -> ctx.json(repo.listarPoderosos()));
@@ -30,11 +29,27 @@ public class RestApi {
         app.post("/personajes", ctx -> {
             try {
                 Map<String, Object> body = ctx.bodyAsClass(Map.class);
-                // Usamos 'danio' sin eñe para evitar errores de codificación
-                int valorDanio = body.get("danio") != null ?
-                        Integer.parseInt(body.get("danio").toString()) : 0;
-
+                int valorDanio = body.get("danio") != null ? Integer.parseInt(body.get("danio").toString()) : 0;
                 service.registrarNuevoUsuario(
+                        (String) body.get("nombre"), (String) body.get("linaje"),
+                        (String) body.get("nombreStand"), (String) body.get("rango"),
+                        (String) body.get("tecnica"), valorDanio
+                );
+                ctx.status(201).result("OK");
+            } catch (Exception e) {
+                ctx.status(500).result(e.getMessage());
+            }
+        });
+
+        // Endpoint PUT corregido usando el Service
+        app.put("/personajes/{id}", ctx -> {
+            try {
+                long id = Long.parseLong(ctx.pathParam("id"));
+                Map<String, Object> body = ctx.bodyAsClass(Map.class);
+                int valorDanio = body.get("danio") != null ? Integer.parseInt(body.get("danio").toString()) : 0;
+
+                service.actualizarUsuario(
+                        id,
                         (String) body.get("nombre"),
                         (String) body.get("linaje"),
                         (String) body.get("nombreStand"),
@@ -42,10 +57,9 @@ public class RestApi {
                         (String) body.get("tecnica"),
                         valorDanio
                 );
-                ctx.status(201).result("OK");
+                ctx.result("OK");
             } catch (Exception e) {
-                e.printStackTrace();
-                ctx.status(500).result("Error: " + e.getMessage());
+                ctx.status(500).result("Error al editar: " + e.getMessage());
             }
         });
 
@@ -74,20 +88,19 @@ public class RestApi {
                 input { background: #333; border: 1px solid #444; color: white; padding: 10px; border-radius: 4px; }
                 button { cursor: pointer; padding: 10px 15px; border: none; border-radius: 4px; font-weight: bold; transition: 0.2s; }
                 .btn-save { background: #27ae60; color: white; width: 100%; font-size: 1.1em; }
-                .btn-save:hover { background: #2ecc71; }
                 .nav { display: flex; gap: 10px; margin-bottom: 20px; }
                 table { width: 100%; border-collapse: collapse; }
                 th, td { padding: 12px; text-align: left; border-bottom: 1px solid #333; }
                 th { color: #f1c40f; }
                 .btn-red { background: #e74c3c; color: white; padding: 5px 10px; }
+                .btn-edit { background: #f1c40f; color: #000; padding: 5px 10px; margin-right: 5px; }
             </style>
         </head>
         <body>
             <div class="container">
-                <h1>🕵️ Panel de Gestión Speedwagon</h1>
-                
+                <h1>Panel de Gestión</h1>
                 <div class="panel">
-                    <h3 style="color:#f1c40f; margin-top:0;">➕ Registrar Nuevo Portador</h3>
+                    <h3 id="form-title" style="color:#f1c40f; margin-top:0;">➕ Registrar Nuevo Portador</h3>
                     <div class="form-grid">
                         <input type="text" id="nombre" placeholder="Nombre">
                         <input type="text" id="linaje" placeholder="Linaje">
@@ -96,17 +109,15 @@ public class RestApi {
                         <input type="text" id="tecnica" placeholder="Técnica">
                         <input type="number" id="danio" placeholder="Daño (0-100)">
                     </div>
-                    <button class="btn-save" onclick="crear()">Guardar Registro y Auditoría</button>
+                    <button class="btn-save" id="btn-main" onclick="crear()">Guardar</button>
+                    <button id="btn-cancel" style="display:none; margin-top:10px; background:#666; color:white; width:100%" onclick="resetearFormulario()">Cancelar Edición</button>
                 </div>
-
                 <div class="nav">
                     <button style="background:#3498db; color:white;" onclick="cargar()">🔄 Ver Todos</button>
                     <button style="background:#e67e22; color:white;" onclick="filtrar('Joestar')">⭐ Solo Joestars</button>
                     <button style="background:#c0392b; color:white;" onclick="poderosos()">🔥 Daño > 80</button>
                     <button style="background:#8e44ad; color:white;" onclick="window.open('/logs')">📜 Auditoría</button>
-                    <button style="background:#d35400; color:white;" onclick="exportar()">💾 Backup</button>
                 </div>
-
                 <table>
                     <thead>
                         <tr><th>ID</th><th>Nombre</th><th>Linaje</th><th>Stand</th><th>Acciones</th></tr>
@@ -114,25 +125,61 @@ public class RestApi {
                     <tbody id="lista"></tbody>
                 </table>
             </div>
-
             <script>
+                let idEditando = null;
                 function render(data) {
                     const t = document.getElementById('lista');
                     t.innerHTML = "";
                     data.forEach(p => {
+                        const strData = btoa(JSON.stringify(p));
                         t.innerHTML += `<tr>
                             <td>${p.id}</td><td><b>${p.nombre}</b></td><td>${p.linaje}</td>
                             <td>${p.stand ? p.stand.nombreStand : '-'}</td>
-                            <td><button class="btn-red" onclick="borrar(${p.id})">Eliminar</button></td>
+                            <td>
+                                <button class="btn-edit" onclick="prepararEdicion('${strData}')">Editar</button>
+                                <button class="btn-red" onclick="borrar(${p.id})">Eliminar</button>
+                            </td>
                         </tr>`;
                     });
                 }
-                function cargar() { fetch('/personajes').then(r => r.json()).then(render); }
-                function filtrar(l) { fetch('/personajes/buscar?linaje='+l).then(r => r.json()).then(render); }
-                function poderosos() { fetch('/personajes/poderosos').then(r => r.json()).then(render); }
+                function prepararEdicion(base64) {
+                    const p = JSON.parse(atob(base64));
+                    idEditando = p.id;
+                    document.getElementById('form-title').innerText = "📝 Editando Portador ID: " + idEditando;
+                    document.getElementById('nombre').value = p.nombre;
+                    document.getElementById('linaje').value = p.linaje;
+                    document.getElementById('stand').value = p.stand ? p.stand.nombreStand : '';
+                    document.getElementById('rango').value = p.stand ? p.stand.rango : '';
+                    if(p.stand && p.stand.habilidades.length > 0) {
+                        document.getElementById('tecnica').value = p.stand.habilidades[0].nombreTecnica;
+                        document.getElementById('danio').value = p.stand.habilidades[0].daño;
+                    }
+                    const btn = document.getElementById('btn-main');
+                    btn.innerText = "💾 Confirmar Cambios";
+                    btn.style.background = "#f39c12";
+                    btn.onclick = enviarEdicion;
+                    document.getElementById('btn-cancel').style.display = "block";
+                }
+                function enviarEdicion() {
+                            const payload = obtenerPayload();
+                            console.log("Enviando edición para ID:", idEditando, payload);
                 
-                function crear() {
-                    const payload = {
+                            fetch('/personajes/' + idEditando, {
+                                method: 'PUT',
+                                headers: {'Content-Type': 'application/json'},
+                                body: JSON.stringify(payload)
+                            }).then(res => {
+                                if (res.ok) {
+                                    alert('¡Actualizado!');
+                                    resetearFormulario();
+                                    cargar(); // Esto refresca la tabla
+                                } else {
+                                    alert('Error en el servidor');
+                                }
+                            });
+                        }
+                function obtenerPayload() {
+                    return {
                         nombre: document.getElementById('nombre').value,
                         linaje: document.getElementById('linaje').value,
                         nombreStand: document.getElementById('stand').value,
@@ -140,24 +187,30 @@ public class RestApi {
                         tecnica: document.getElementById('tecnica').value,
                         danio: document.getElementById('danio').value
                     };
+                }
+                function resetearFormulario() {
+                    idEditando = null;
+                    document.getElementById('form-title').innerText = "➕ Registrar Nuevo Portador";
+                    document.querySelectorAll('input').forEach(i => i.value = '');
+                    const btn = document.getElementById('btn-main');
+                    btn.innerText = "Guardar";
+                    btn.style.background = "#27ae60";
+                    btn.onclick = crear;
+                    document.getElementById('btn-cancel').style.display = "none";
+                }
+                function cargar() { fetch('/personajes').then(r => r.json()).then(render); }
+                function filtrar(l) { fetch('/personajes/buscar?linaje='+l).then(r => r.json()).then(render); }
+                function poderosos() { fetch('/personajes/poderosos').then(r => r.json()).then(render); }
+                function crear() {
                     fetch('/personajes', {
                         method: 'POST',
                         headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify(payload)
-                    }).then(() => { 
-                        alert('¡Guardado!'); 
-                        cargar(); 
-                        // Limpiar campos
-                        document.querySelectorAll('input').forEach(i => i.value = '');
-                    });
+                        body: JSON.stringify(obtenerPayload())
+                    }).then(() => { alert('¡Guardado!'); resetearFormulario(); cargar(); });
                 }
-                
                 function borrar(id) {
                     if(confirm('¿Eliminar?')) fetch('/personajes/'+id, {method:'DELETE'}).then(() => cargar());
                 }
-
-                function exportar() { fetch('/exportar').then(() => alert('Backup JSON generado.')); }
-
                 window.onload = cargar;
             </script>
         </body>

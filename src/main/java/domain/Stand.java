@@ -3,7 +3,7 @@ package domain;
 import jakarta.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
-import com.fasterxml.jackson.annotation.JsonIgnore; // Importante
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Table(name = "stands")
@@ -16,15 +16,14 @@ public class Stand {
 
     @OneToOne
     @JoinColumn(name = "usuario_id")
-    @JsonIgnore // Evita que Jackson se bloquee en un bucle infinito
+    @JsonIgnore
     private Usuario portador;
 
-    @OneToMany(mappedBy = "stand", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "stand", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true) // ← AÑADIDO orphanRemoval
     private List<Habilidad> habilidades = new ArrayList<>();
 
     public Stand() {}
 
-    // Getters y Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getNombreStand() { return nombreStand; }

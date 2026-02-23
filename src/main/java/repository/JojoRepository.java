@@ -11,11 +11,11 @@ public class JojoRepository {
         Transaction tx = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             tx = session.beginTransaction();
-            session.persist(obj);
+            session.merge(obj);
             tx.commit();
         } catch (Exception e) {
             if (tx != null) tx.rollback();
-            e.printStackTrace();
+            throw new RuntimeException("Error al guardar en base de datos", e); // ← RELANZAR para que el Service sepa que falló
         }
     }
 
@@ -49,6 +49,7 @@ public class JojoRepository {
             tx.commit();
         } catch (Exception e) {
             if (tx != null) tx.rollback();
+            throw new RuntimeException("Error al eliminar usuario con ID: " + id, e); // ← RELANZAR también aquí
         }
     }
 }
